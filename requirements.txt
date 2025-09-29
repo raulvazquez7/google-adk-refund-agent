@@ -24,6 +24,7 @@ google-cloud-audit-log==0.3.2
 google-cloud-bigquery==3.38.0
 google-cloud-bigtable==2.32.0
 google-cloud-core==2.4.3
+google-cloud-firestore==2.21.0
 google-cloud-logging==3.12.1
 google-cloud-monitoring==2.27.2
 google-cloud-resource-manager==1.14.2
@@ -55,6 +56,7 @@ MarkupSafe==3.0.3
 mcp==1.15.0
 numpy==2.3.3
 opentelemetry-api==1.37.0
+opentelemetry-exporter-cloud-trace==0.10b1
 opentelemetry-exporter-gcp-logging==1.9.0a0
 opentelemetry-exporter-gcp-monitoring==1.9.0a0
 opentelemetry-exporter-gcp-trace==1.9.0

@@ -51,16 +51,16 @@ def get_embedding_dimensions(bucket_name: str, prefix: str) -> int:
     bucket = storage_client.bucket(bucket_name)
 
     blob_list = list(bucket.list_blobs(prefix=prefix))
-    jsonl_blob = next(
-        (blob for blob in blob_list if blob.name.endswith(".jsonl")), None
+    json_blob = next(
+        (blob for blob in blob_list if blob.name.endswith(".json")), None
     )
 
-    if not jsonl_blob:
-        raise FileNotFoundError(f"No .jsonl file found in gs://{bucket_name}/{prefix}")
+    if not json_blob:
+        raise FileNotFoundError(f"No .json file found in gs://{bucket_name}/{prefix}")
 
     # Open the blob as a text stream and read only the first line
     # This is robust to line length and avoids downloading the whole file.
-    with jsonl_blob.open("r", encoding="utf-8") as f:
+    with json_blob.open("r", encoding="utf-8") as f:
         first_line = f.readline()
 
     if not first_line:

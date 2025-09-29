@@ -22,7 +22,7 @@ logging.basicConfig(
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 LOCATION = os.getenv("GCP_LOCATION")
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
-EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "gemini-embedding-001")
+EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "textembedding-gecko@001")
 
 # --- Validation ---
 REQUIRED_VARS = ["GCP_PROJECT_ID", "GCP_LOCATION", "GCS_BUCKET_NAME"]
@@ -40,7 +40,7 @@ INPUT_FILE_PATH = os.path.join(
     os.path.dirname(__file__), "..", "data", "company_refund_policy_barefoot.md"
 )
 OUTPUT_FOLDER_GCS = "rag_embeddings"
-OUTPUT_FILE_NAME = "refund_policy_embeddings.jsonl"
+OUTPUT_FILE_NAME = "refund_policy_embeddings.json"
 OUTPUT_FILE_PATH_GCS = f"{GCS_BUCKET_URI}/{OUTPUT_FOLDER_GCS}/{OUTPUT_FILE_NAME}"
 
 

@@ -1,0 +1,20 @@
+{"order_id": "ORD-84315", "user_id": "user-gkw", "purchase_date": "2025-09-18T11:25:00Z", "status": "DELIVERED", "items": [{"name": "Sandalias Zénit Play", "price": 45.50}]}
+{"order_id": "ORD-910234", "user_id": "user-bhr", "purchase_date": "2025-09-15T09:10:30Z", "status": "SHIPPED", "items": [{"name": "Zapatillas Zénit Explorer", "price": 59.95}]}
+{"order_id": "ORD-295481", "user_id": "user-pql", "purchase_date": "2025-09-12T18:45:12Z", "status": "DELIVERED", "items": [{"name": "Botas de Agua Zénit Splash", "price": 39.99}, {"name": "Calcetines Zénit Dots", "price": 12.00}]}
+{"order_id": "ORD-58319", "user_id": "user-zxc", "purchase_date": "2025-09-10T14:00:05Z", "status": "PENDING", "items": [{"name": "Mocasines Zénit Soft", "price": 52.75}]}
+{"order_id": "ORD-7310985", "user_id": "user-vbn", "purchase_date": "2025-09-05T20:05:40Z", "status": "CANCELLED", "items": [{"name": "Zapatillas Zénit Explorer", "price": 59.95}]}
+{"order_id": "ORD-44012", "user_id": "user-gkw", "purchase_date": "2025-09-02T12:30:00Z", "status": "DELIVERED", "items": [{"name": "Botas de Invierno Zénit Warm", "price": 75.00}]}
+{"order_id": "ORD-683401", "user_id": "user-asd", "purchase_date": "2025-08-29T16:15:22Z", "status": "SHIPPED", "items": [{"name": "Zapatillas de Lona Zénit Eco", "price": 49.90}]}
+{"order_id": "ORD-112358", "user_id": "user-fgh", "purchase_date": "2025-08-25T08:55:00Z", "status": "DELIVERED", "items": [{"name": "Sandalias Zénit Play", "price": 45.50}]}
+{"order_id": "ORD-876543", "user_id": "user-bhr", "purchase_date": "2025-08-22T13:20:15Z", "status": "DELIVERED", "items": [{"name": "Botas de Agua Zénit Splash", "price": 39.99}]}
+{"order_id": "ORD-99887", "user_id": "user-pql", "purchase_date": "2025-08-20T17:00:00Z", "status": "PENDING", "items": [{"name": "Zapatillas Zénit Explorer", "price": 59.95}, {"name": "Plantillas Zénit Comfort", "price": 15.50}]}
+{"order_id": "ORD-3456789", "user_id": "user-jkl", "purchase_date": "2025-08-18T10:10:10Z", "status": "SHIPPED", "items": [{"name": "Mocasines Zénit Soft", "price": 52.75}]}
+{"order_id": "ORD-25836", "user_id": "user-zxc", "purchase_date": "2025-08-14T21:30:50Z", "status": "DELIVERED", "items": [{"name": "Botas de Invierno Zénit Warm", "price": 75.00}]}
+{"order_id": "ORD-741852", "user_id": "user-vbn", "purchase_date": "2025-08-11T09:00:00Z", "status": "CANCELLED", "items": [{"name": "Sandalias Zénit Play", "price": 45.50}]}
+{"order_id": "ORD-963258", "user_id": "user-gkw", "purchase_date": "2025-08-07T15:45:30Z", "status": "DELIVERED", "items": [{"name": "Zapatillas de Lona Zénit Eco", "price": 49.90}]}
+{"order_id": "ORD-159753", "user_id": "user-asd", "purchase_date": "2025-08-04T11:50:00Z", "status": "DELIVERED", "items": [{"name": "Zapatillas Zénit Explorer", "price": 59.95}]}
+{"order_id": "ORD-753951", "user_id": "user-bhr", "purchase_date": "2025-07-30T19:25:00Z", "status": "SHIPPED", "items": [{"name": "Botas de Agua Zénit Splash", "price": 39.99}]}
+{"order_id": "ORD-85214", "user_id": "user-fgh", "purchase_date": "2025-07-28T14:12:18Z", "status": "PENDING", "items": [{"name": "Mocasines Zénit Soft", "price": 52.75}]}
+{"order_id": "ORD-48625", "user_id": "user-jkl", "purchase_date": "2025-07-25T10:05:00Z", "status": "DELIVERED", "items": [{"name": "Zapatillas de Lona Zénit Eco", "price": 49.90}]}
+{"order_id": "ORD-9513574", "user_id": "user-pql", "purchase_date": "2025-07-21T07:40:00Z", "status": "DELIVERED", "items": [{"name": "Sandalias Zénit Play", "price": 45.50}, {"name": "Calcetines Zénit Dots", "price": 12.00}]}
+{"order_id": "ORD-65432", "user_id": "user-gkw", "purchase_date": "2025-07-19T22:00:00Z", "status": "SHIPPED", "items": [{"name": "Botas de Invierno Zénit Warm", "price": 75.00}]}
