@@ -22,7 +22,7 @@ logging.basicConfig(
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 LOCATION = os.getenv("GCP_LOCATION")
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
-EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "textembedding-gecko@001")
+EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "text-embedding-004")
 
 # --- Validation ---
 REQUIRED_VARS = ["GCP_PROJECT_ID", "GCP_LOCATION", "GCS_BUCKET_NAME"]
@@ -64,11 +64,17 @@ def generate_embeddings(chunks: List[str]) -> List[Dict[str, Any]]:
     logging.info(f"Generating {len(chunks)} embeddings in a single batch...")
     embeddings = model.get_embeddings(chunks)
 
+    # Formato correcto para Matching Engine con restricts
     embeddings_with_text = [
         {
             "id": str(uuid.uuid4()),
             "embedding": embedding.values,
-            "text": chunk,
+            "restricts": [
+                {
+                    "namespace": "text",
+                    "allow_list": [chunk]
+                }
+            ]
         }
         for chunk, embedding in zip(chunks, embeddings)
     ]

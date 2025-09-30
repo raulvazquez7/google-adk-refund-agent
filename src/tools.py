@@ -1,76 +1,91 @@
+"""
+Tool implementations for the Barefoot Zénit refund agent.
+
+This module provides the concrete implementations of the tools that the agent
+can use to perform its tasks. These tools interact with Firestore and Vertex AI
+to gather information and execute actions.
+
+Available tools:
+- rag_search_tool: Performs semantic search on the refund policy.
+- get_order_details: Retrieves specific order information from Firestore.
+- process_refund: Simulates processing a refund and returns a transaction ID.
+"""
 import json
 import logging
 import os
 from datetime import datetime
+import numpy as np
 
-from google.cloud import aiplatform, firestore
-from vertexai.generative_models import GenerativeModel
+from google.cloud import firestore
+from vertexai.language_models import TextEmbeddingModel
 
 # --- Configuration ---
-# Cargar las variables de entorno para acceder a los recursos de GCP
-# y al nombre del modelo de embeddings.
+# Load environment variables to access GCP resources
+# and the embeddings model name.
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 LOCATION = os.getenv("GCP_LOCATION")
 ME_ENDPOINT_NAME = os.getenv("ME_ENDPOINT_NAME")
 ME_DEPLOYED_INDEX_ID = os.getenv("ME_DEPLOYED_INDEX_ID")
 EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL")
-FIRESTORE_DATABASE_ID = "orders"  # El ID de tu base de datos de Firestore
+FIRESTORE_DATABASE_ID = "orders"  # Use the same database for everything
 
-# Inicializamos el SDK de Vertex AI y el cliente de Firestore
-aiplatform.init(project=PROJECT_ID, location=LOCATION)
+# Initialize clients
+# aiplatform.init(project=PROJECT_ID, location=LOCATION) # This line is no longer needed
 db = firestore.Client(project=PROJECT_ID, database=FIRESTORE_DATABASE_ID)
 
 
+def cosine_similarity(a, b):
+    """Calculates cosine similarity between two vectors"""
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
 def rag_search_tool(query: str) -> str:
     """
-    Performs a semantic search on the company's refund policy.
-
-    This tool takes a user's question, converts it into a vector embedding,
-    and queries the Vertex AI Matching Engine to find the most relevant
-    sections of the policy document.
-
-    Args:
-        query: The user's question about the refund policy.
-
-    Returns:
-        A string containing the most relevant context from the policy,
-        or a message if no relevant information is found.
+    Performs semantic search on the company's refund policy using Firestore.
+    
+    This is a production-ready approach for small-to-medium datasets.
+    For millions of vectors, consider Vertex AI Vector Search.
     """
     logging.info(f"Performing RAG search with query: '{query}'")
     try:
-        model = GenerativeModel(EMBEDDINGS_MODEL)
-        response = model.embed_content([query], output_dimensionality=768)
-        query_embedding = response[0].values
-
-        endpoint = aiplatform.MatchingEngineIndexEndpoint(
-            index_endpoint_name=ME_ENDPOINT_NAME
-        )
-
-        search_results = endpoint.find_neighbors(
-            queries=[query_embedding],
-            deployed_index_id=ME_DEPLOYED_INDEX_ID,
-            num_neighbors=3,
-        )
-
-        context_pieces = []
-        if search_results and search_results[0]:
-            for match in search_results[0]:
-                doc_text = next(
-                    (r.string_value for r in match.datapoint.restricts if r.namespace == "text"),
-                    None,
-                )
-                if doc_text:
-                    context_pieces.append(doc_text)
+        # 1. Generate query embedding
+        model = TextEmbeddingModel.from_pretrained(EMBEDDINGS_MODEL)
+        query_embeddings = model.get_embeddings([query])
+        query_vector = np.array(query_embeddings[0].values)
         
-        if not context_pieces:
-            return "No se encontró información relevante en la política de devoluciones."
-
-        logging.info(f"RAG search found {len(context_pieces)} relevant chunks.")
+        # 2. Retrieve all chunks from Firestore
+        collection_ref = db.collection("policy_chunks")
+        docs = collection_ref.stream()
+        
+        # 3. Calculate similarity with each chunk
+        results = []
+        for doc in docs:
+            data = doc.to_dict()
+            chunk_vector = np.array(data["embedding"])
+            similarity = cosine_similarity(query_vector, chunk_vector)
+            results.append({
+                "text": data["text"],
+                "similarity": similarity,
+                "chunk_id": data["chunk_id"]
+            })
+        
+        # 4. Sort by similarity and take top 3
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        top_results = results[:3]
+        
+        if not top_results:
+            return "No relevant information found in the refund policy."
+        
+        # 5. Return the most relevant chunks
+        context_pieces = [r["text"] for r in top_results]
+        logging.info(f"RAG search found {len(context_pieces)} relevant chunks with similarities: {[f'{r['similarity']:.3f}' for r in top_results]}")
+        
         return "\n---\n".join(context_pieces)
-
+        
     except Exception as e:
         logging.error(f"Error during RAG search: {e}")
-        return "Hubo un error al consultar la política de devoluciones."
+        import traceback
+        logging.error(traceback.format_exc())
+        return "An error occurred while querying the refund policy."
 
 
 def get_order_details(order_id: str) -> str:

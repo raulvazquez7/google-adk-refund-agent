@@ -12,6 +12,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+traces/
 
 # Build artifacts
 build/
@@ -19,3 +20,4 @@ dist/
 *.egg-info/
 
 constraints-adk-*.txt
+adk_project_roadmap.md

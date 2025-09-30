@@ -1,3 +1,14 @@
+"""
+Seeds the Firestore database with sample order data from a JSONL file.
+
+This script reads order data from a local JSONL file and uploads each entry
+as a document to a specified Firestore collection. The 'order_id' field is
+used as the document ID in Firestore.
+
+Before running:
+- Ensure GCP_PROJECT_ID is set in your .env file
+- Authenticate with: gcloud auth application-default login
+"""
 import json
 import logging
 import os
@@ -31,7 +42,7 @@ def seed_firestore():
     The 'order_id' from the JSON is used as the document ID in Firestore.
     """
     logging.info(f"Initializing Firestore client for project '{PROJECT_ID}'...")
-    # Añadimos el parámetro database para especificar a cuál nos conectamos
+    # Connect to the 'orders' database (not the default one)
     db = firestore.Client(project=PROJECT_ID, database="orders")
     collection_ref = db.collection(FIRESTORE_COLLECTION)
 

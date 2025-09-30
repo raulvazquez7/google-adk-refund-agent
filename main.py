@@ -1,45 +1,33 @@
+import os
+from dotenv import load_dotenv
 import asyncio
 import logging
-import os
 import uuid
-from dotenv import load_dotenv
 
+# Carga .env PRIMERO
+load_dotenv()
+
+# Ahora sí, importar ADK y Langfuse
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 from src.agent import refund_agent
+from langfuse import get_client
 
-# --- Tracing Configuration (NUEVO) ---
-from opentelemetry import trace
-from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
-from opentelemetry.sdk.trace import TracerProvider, export
-
-# --- Configuration ---
-load_dotenv()
-
-# --- GCP Configuration ---
-PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-
-# --- Initialize Cloud Tracing (NUEVO) ---
-# Esto configura el sistema de telemetría global.
-# El ADK detectará automáticamente esta configuración y comenzará a exportar trazas.
-provider = TracerProvider()
-processor = export.BatchSpanProcessor(CloudTraceSpanExporter(project_id=PROJECT_ID))
-provider.add_span_processor(processor)
-trace.set_tracer_provider(provider)
-
-
+# --- Configuración de Logging y Langfuse ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+langfuse = get_client()
 
+# --- Constantes de la Aplicación ---
 APP_NAME = "barefoot_refund_cli"
 USER_ID = "local_test_user"
 SESSION_ID = f"session_{uuid.uuid4()}"
 
-
 async def main():
     """
-    Main function to run a chat session with the agent in the terminal.
+    Función principal para ejecutar una sesión de chat con el agente en la terminal,
+    con tracing habilitado para Langfuse Cloud.
     """
-    print("--- Agente de Reembolsos de Barefoot Zénit ---")
+    print("--- Agente de Reembolsos de Barefoot Zénit (con Langfuse Cloud) ---")
     print(f"Iniciando sesión... (ID de sesión: {SESSION_ID})")
     print("Escribe 'salir' para terminar.")
     print("-" * 50)
@@ -58,18 +46,40 @@ async def main():
                 print("--- Sesión finalizada ---")
                 break
 
-            async for event in runner.run_async(
-                user_id=USER_ID,
-                session_id=SESSION_ID,
-                new_message=types.Content(role="user", parts=[types.Part(text=user_input)])
-            ):
-                logging.info(f"AGENT EVENT: {event}")
+            # Crear span usando el patrón correcto de la documentación
+            with langfuse.start_as_current_span(name="chat-interaction"):
+                # Actualizar la traza actual con metadatos
+                langfuse.update_current_trace(
+                    user_id=USER_ID,
+                    session_id=SESSION_ID,
+                    input={"message": user_input},
+                    tags=["adk-agent", "barefoot-refund"]
+                )
 
-                if event.is_final_response() and event.content:
-                    parts = event.content.parts or []
-                    text = parts[0].text if parts and hasattr(parts[0], "text") else ""
-                    if text:
-                        print(f"Agente: {text.strip()}")
+                final_response_text = ""
+                async for event in runner.run_async(
+                    user_id=USER_ID,
+                    session_id=SESSION_ID,
+                    new_message=types.Content(role="user", parts=[types.Part(text=user_input)])
+                ):
+                    logging.info(f"AGENT EVENT: {event}")
+
+                    if event.is_final_response() and event.content:
+                        parts = event.content.parts or []
+                        text = parts[0].text if parts and hasattr(parts[0], "text") else ""
+                        if text:
+                            final_response_text = text.strip()
+                            print(f"Agente: {final_response_text}")
+                
+                # Actualizar la traza con la respuesta final
+                langfuse.update_current_trace(output={"response": final_response_text})
+                
+                # Obtener URL de la traza para debug
+                trace_url = langfuse.get_trace_url()
+                print(f"\n🔍 Ver traza: {trace_url}")
+
+            # Forzar el envío inmediato
+            langfuse.flush()
 
         except KeyboardInterrupt:
             print("\n--- Sesión finalizada por el usuario ---")
