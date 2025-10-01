@@ -1,35 +1,42 @@
+"""
+Main entry point for the Barefoot Zénit Refund Agent CLI.
+
+This script initializes and runs a command-line interface for interacting with the
+refund agent. It handles loading environment variables, setting up logging,
+and managing the conversation loop with Langfuse observability integration.
+"""
 import os
 from dotenv import load_dotenv
 import asyncio
 import logging
 import uuid
 
-# Carga .env PRIMERO
+# Load .env FIRST
 load_dotenv()
 
-# Ahora sí, importar ADK y Langfuse
+# Now import ADK and Langfuse
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 from src.agent import refund_agent
 from langfuse import get_client
 
-# --- Configuración de Logging y Langfuse ---
+# --- Configuration ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 langfuse = get_client()
 
-# --- Constantes de la Aplicación ---
+# --- Application Constants ---
 APP_NAME = "barefoot_refund_cli"
 USER_ID = "local_test_user"
 SESSION_ID = f"session_{uuid.uuid4()}"
 
 async def main():
     """
-    Función principal para ejecutar una sesión de chat con el agente en la terminal,
-    con tracing habilitado para Langfuse Cloud.
+    Main function to run a chat session with the agent in the terminal,
+    with tracing enabled for Langfuse Cloud.
     """
-    print("--- Agente de Reembolsos de Barefoot Zénit (con Langfuse Cloud) ---")
-    print(f"Iniciando sesión... (ID de sesión: {SESSION_ID})")
-    print("Escribe 'salir' para terminar.")
+    print("--- Barefoot Zénit Refund Agent (with Langfuse Cloud) ---")
+    print(f"Starting session... (Session ID: {SESSION_ID})")
+    print("Type 'exit' to end the conversation.")
     print("-" * 50)
 
     runner = InMemoryRunner(agent=refund_agent, app_name=APP_NAME)
@@ -41,14 +48,14 @@ async def main():
 
     while True:
         try:
-            user_input = input("Tú: ")
-            if user_input.lower() == 'salir':
-                print("--- Sesión finalizada ---")
+            user_input = input("You: ")
+            if user_input.lower() == 'exit':
+                print("--- Session ended ---")
                 break
 
-            # Crear span usando el patrón correcto de la documentación
+            # Create span using correct pattern from documentation
             with langfuse.start_as_current_span(name="chat-interaction"):
-                # Actualizar la traza actual con metadatos
+                # Update current trace with metadata
                 langfuse.update_current_trace(
                     user_id=USER_ID,
                     session_id=SESSION_ID,
@@ -69,23 +76,23 @@ async def main():
                         text = parts[0].text if parts and hasattr(parts[0], "text") else ""
                         if text:
                             final_response_text = text.strip()
-                            print(f"Agente: {final_response_text}")
+                            print(f"Agent: {final_response_text}")
                 
-                # Actualizar la traza con la respuesta final
+                # Update trace with final response
                 langfuse.update_current_trace(output={"response": final_response_text})
                 
-                # Obtener URL de la traza para debug
+                # Get trace URL for debugging
                 trace_url = langfuse.get_trace_url()
-                print(f"\n🔍 Ver traza: {trace_url}")
+                print(f"\n🔍 View trace: {trace_url}")
 
-            # Forzar el envío inmediato
+            # Force immediate sending
             langfuse.flush()
 
         except KeyboardInterrupt:
-            print("\n--- Sesión finalizada por el usuario ---")
+            print("\n--- Session ended by user ---")
             break
         except Exception as e:
-            logging.error(f"Ha ocurrido un error: {e}", exc_info=True)
+            logging.error(f"An error occurred: {e}", exc_info=True)
             break
 
 if __name__ == "__main__":
