@@ -34,20 +34,20 @@ class AgentRequest(BaseModel):
 class AgentResponse(BaseModel):
     """
     Standard response format from agents.
-    
+
     Every agent returns this format, ensuring consistent error handling
     and result processing.
-    
+
     Attributes:
         agent: Agent that generated the response
         status: Success or error indicator
-        result: Task output (if successful)
+        result: Task output (if successful) - can be dict, string, list, etc.
         error: Error details (if failed)
         metadata: Performance and debugging information
     """
     agent: str = Field(..., description="Agent that generated this response")
     status: Literal["success", "error"] = Field(..., description="Execution status")
-    result: Optional[Dict[str, Any]] = Field(None, description="Task result if successful")
+    result: Optional[Any] = Field(None, description="Task result if successful")
     error: Optional[str] = Field(None, description="Error message if failed")
     metadata: Dict[str, Any] = Field(
         default_factory=lambda: {
@@ -59,8 +59,18 @@ class AgentResponse(BaseModel):
     )
     
     @classmethod
-    def create_success(cls, agent: str, result: Dict[str, Any], **metadata_kwargs) -> "AgentResponse":
-        """Helper to create a successful response."""
+    def create_success(cls, agent: str, result: Any, **metadata_kwargs) -> "AgentResponse":
+        """
+        Helper to create a successful response.
+
+        Args:
+            agent: Agent name
+            result: Task result (can be dict, string, list, etc.)
+            **metadata_kwargs: Additional metadata fields (e.g., latency_ms, tokens_used)
+
+        Returns:
+            AgentResponse with status="success"
+        """
         return cls(
             agent=agent,
             status="success",
@@ -73,7 +83,17 @@ class AgentResponse(BaseModel):
     
     @classmethod
     def create_error(cls, agent: str, error_message: str, **metadata_kwargs) -> "AgentResponse":
-        """Helper to create an error response."""
+        """
+        Helper to create an error response.
+
+        Args:
+            agent: Agent name
+            error_message: Error description
+            **metadata_kwargs: Additional metadata fields (e.g., latency_ms)
+
+        Returns:
+            AgentResponse with status="error"
+        """
         return cls(
             agent=agent,
             status="error",
