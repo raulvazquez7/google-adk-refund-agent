@@ -33,6 +33,9 @@ intent_classification: |
   Intent: general
   Confidence: 0.85
 
+  ## CONVERSATION HISTORY (for context):
+  {history}
+
   Now classify this message:
   User: "{user_message}"
 
@@ -49,6 +52,9 @@ response_assembly: |
   - **Professional**: Clear, concise, no jargon
   - **Helpful**: Always provide next steps
   - **Human**: Warm but not overly casual (no slang, no exclamation overuse)
+
+  ## CONVERSATION HISTORY:
+  {history}
 
   ## USER CONTEXT:
   User Query: "{user_message}"

@@ -74,12 +74,13 @@ class CoordinatorAgent(BaseAgent):
         4. Assemble final response
 
         Args:
-            request: Request with context containing "user_message"
+            request: Request with context containing "user_message" and "history"
 
         Returns:
             Dict with intent, agents_called, and final response
         """
         user_message = request.context.get("user_message", "")
+        history = request.context.get("history", "")
 
         if not user_message:
             raise ValueError("Missing 'user_message' in context")
@@ -87,11 +88,12 @@ class CoordinatorAgent(BaseAgent):
         self.logger.info(
             "coordination_started",
             agent=self.name,
-            user_message=user_message[:100]  # Log first 100 chars
+            user_message=user_message[:100],  # Log first 100 chars
+            has_history=bool(history)
         )
 
-        # Step 1: Classify intent
-        intent = await self._classify_intent(user_message)
+        # Step 1: Classify intent (with conversation history for context)
+        intent = await self._classify_intent(user_message, history)
 
         # Step 2: Determine which agents to call
         agent_calls = self._plan_agent_calls(intent, request.context)
@@ -100,7 +102,7 @@ class CoordinatorAgent(BaseAgent):
         results = await self._execute_agent_calls(agent_calls)
 
         # Step 4: Assemble response (returns dict with response + eligibility_info)
-        response_data = await self._assemble_response(intent, results, user_message)
+        response_data = await self._assemble_response(intent, results, user_message, history)
 
         self.logger.info(
             "coordination_completed",
@@ -130,7 +132,7 @@ class CoordinatorAgent(BaseAgent):
 
         return result
 
-    async def _classify_intent(self, user_message: str) -> str:
+    async def _classify_intent(self, user_message: str, history: str = "") -> str:
         """
         Classify user intent using LLM with structured output.
 
@@ -143,6 +145,7 @@ class CoordinatorAgent(BaseAgent):
 
         Args:
             user_message: User's query
+            history: Conversation history for multi-turn context
 
         Returns:
             Intent category: "refund", "policy", or "general"
@@ -153,7 +156,7 @@ class CoordinatorAgent(BaseAgent):
             method="llm"
         )
 
-        prompt = get_prompt("intent_classification", user_message=user_message)
+        prompt = get_prompt("intent_classification", user_message=user_message, history=history)
 
         config = GenerationConfig(
             response_mime_type="application/json",
@@ -437,7 +440,8 @@ class CoordinatorAgent(BaseAgent):
         self,
         intent: str,
         results: Dict[str, AgentResponse],
-        user_message: str
+        user_message: str,
+        history: str = ""
     ) -> Dict[str, Any]:
         """
         Assemble final response using structured outputs.
@@ -448,6 +452,7 @@ class CoordinatorAgent(BaseAgent):
             intent: Classified intent
             results: Responses from specialized agents
             user_message: Original user query
+            history: Conversation history for multi-turn context
 
         Returns:
             Dict with "response" (AgentResponseTemplate) and optionally "eligibility_info" (RefundEligibilityInfo)
@@ -506,7 +511,8 @@ Refund Eligibility Check:
             user_message=user_message,
             intent=intent,
             context_str=context_str,
-            eligibility_context=eligibility_context
+            eligibility_context=eligibility_context,
+            history=history
         )
 
         config = GenerationConfig(

@@ -189,11 +189,15 @@ async def main():
                 pending_refund_amount = None
                 continue
 
-            # Create request for coordinator
+            # Create request for coordinator with conversation history
+            conversation_context = history_manager.get_context_for_llm()
             request = AgentRequest(
                 agent="coordinator",
                 task="handle_user_query",
-                context={"user_message": user_input},
+                context={
+                    "user_message": user_input,
+                    "history": conversation_context
+                },
                 metadata={
                     "session_id": SESSION_ID,
                     "user_id": USER_ID
